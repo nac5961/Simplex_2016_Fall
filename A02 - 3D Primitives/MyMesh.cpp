@@ -276,8 +276,44 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
-	// -------------------------------
+	float fValue = a_fHeight * 0.5f;
+	vector3 center(0,-fValue,0); //center of base
+	vector3 top(0, fValue, 0); //top point
+	std::vector<vector3> base; //holds points at base of cone
+
+	//Generate points on base of cone
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		//Find the point on the circle (2D)
+		float x = center.x + a_fRadius * glm::cos((i + 1) * glm::pi<float>() * 2 / a_nSubdivisions);
+		float z = center.z + a_fRadius * glm::sin((i + 1) * glm::pi<float>() * 2 / a_nSubdivisions);
+
+		//Add it to our list
+		base.push_back(vector3(x, -fValue, z));
+	}
+
+	//Connect Shape
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		//Special Case: drawing last triangle
+		if (i == a_nSubdivisions - 1)
+		{
+			//Add triangle on Base (go counter-clockwise)
+			AddTri(base[i], base[0], center);
+
+			//Add triangle on Sides (go clockwise)
+			AddTri(base[0], base[i], top);
+		}
+		else
+		{
+			//Add triangle on Base (go counter-clockwise)
+			AddTri(base[i], base[i + 1], center);
+
+			//Add triangle on Sides (go clockwise)
+			AddTri(base[i + 1], base[i], top);
+		}
+	}
+
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
@@ -300,8 +336,59 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
-	// -------------------------------
+	float fValue = a_fHeight * 0.5f;
+	vector3 centerBase(0, -fValue, 0); //center of base
+	vector3 centerTop(0, fValue, 0); //center of top
+	std::vector<vector3> base; //holds points at base of cylinder
+	std::vector<vector3> top; //holds points at top of cylinder
+
+	//Generate points on top and base of cylinder
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		//Find the point on the circle (2D)
+		float x = centerBase.x + a_fRadius * glm::cos((i + 1) * glm::pi<float>() * 2 / a_nSubdivisions);
+		float z = centerBase.z + a_fRadius * glm::sin((i + 1) * glm::pi<float>() * 2 / a_nSubdivisions);
+
+		//Add it to our list
+		base.push_back(vector3(x, -fValue, z));
+		top.push_back(vector3(x, fValue, z));
+	}
+
+	//Connect Shape
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		//Special Case: drawing last triangle
+		if (i == a_nSubdivisions - 1)
+		{
+			//Add triangle on Base (go counter-clockwise)
+			AddTri(base[i], base[0], centerBase);
+
+			//Add triangle on Top (go clockwise)
+			AddTri(top[0], top[i], centerTop);
+
+			//Add quad on Sides (go counter-clockwise)
+			AddQuad(top[i], top[0], base[i], base[0]);
+
+			//or
+
+			//AddQuad(base[0], base[i], top[0], top[i]);
+		}
+		else
+		{
+			//Add triangle on Base (go counter-clockwise)
+			AddTri(base[i], base[i + 1], centerBase);
+
+			//Add triangle on Top (go clockwise)
+			AddTri(top[i + 1], top[i], centerTop);
+
+			//Add quad on Sides (go counter-clockwise)
+			AddQuad(top[i], top[i + 1], base[i], base[i + 1]);
+
+			//or
+
+			//AddQuad(base[i + 1], base[i], top[i + 1], top[i]);
+		}
+	}
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
@@ -330,8 +417,70 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
-	// -------------------------------
+	float fValue = a_fHeight * 0.5f;
+	float radiusScale = a_fOuterRadius / a_fInnerRadius; //scale to scale points to outer radius from inner radius
+	std::vector<vector3> base; //holds points at base of tube
+	std::vector<vector3> top; //holds points at top of tube
+
+	//Generate points on top and base of tube (according to inner radius).
+	//We'll multiply the x and z by the radiusScale to get the position
+	//of the points on the outer radius.
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		//Find the point on the circle (2D)
+		float x = a_fInnerRadius * glm::cos((i + 1) * glm::pi<float>() * 2 / a_nSubdivisions);
+		float z = a_fInnerRadius * glm::sin((i + 1) * glm::pi<float>() * 2 / a_nSubdivisions);
+
+		//Add it to our list
+		base.push_back(vector3(x, -fValue, z));
+		top.push_back(vector3(x, fValue, z));
+	}
+
+	//Connect Shape
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		//Create temps for outer radius
+		vector3 outerCurrBase(base[i].x * radiusScale, base[i].y, base[i].z * radiusScale);
+		vector3 outerCurrTop(top[i].x * radiusScale, top[i].y, top[i].z * radiusScale);
+
+		//Special Case: drawing last triangle
+		if (i == a_nSubdivisions - 1)
+		{
+			//Set extra temp vectors
+			vector3 outerNextBase(base[0].x * radiusScale, base[0].y, base[0].z * radiusScale);
+			vector3 outerNextTop(top[0].x * radiusScale, top[0].y, top[0].z * radiusScale);
+
+			//Add quad on Base (go clockwise)
+			AddQuad(base[0], base[i], outerNextBase, outerCurrBase);
+
+			//Add quad on Top (go counter-clockwise)
+			AddQuad(top[i], top[0], outerCurrTop, outerNextTop);
+
+			//Add quad on Outer Sides (go clockwise)
+			AddQuad(outerNextBase, outerCurrBase, outerNextTop, outerCurrTop);
+
+			//Add quad on Inner Sides (go counter-clockwise)
+			AddQuad(base[i], base[0], top[i], top[0]);
+		}
+		else
+		{
+			//Set extra temp vectors
+			vector3 outerNextBase(base[i + 1].x * radiusScale, base[i + 1].y, base[i + 1].z * radiusScale);
+			vector3 outerNextTop(top[i + 1].x * radiusScale, top[i + 1].y, top[i + 1].z * radiusScale);
+
+			//Add quad on Base (go clockwise)
+			AddQuad(base[i + 1], base[i], outerNextBase, outerCurrBase);
+
+			//Add quad on Top (go counter-clockwise)
+			AddQuad(top[i], top[i + 1], outerCurrTop, outerNextTop);
+
+			//Add quad on Outer Sides (go clockwise)
+			AddQuad(outerNextBase, outerCurrBase, outerNextTop, outerCurrTop);
+
+			//Add quad on Inner Sides (go counter-clockwise)
+			AddQuad(base[i], base[i + 1], top[i], top[i + 1]);
+		}
+	}
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
@@ -375,10 +524,9 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 		a_fRadius = 0.01f;
 
 	//Sets minimum and maximum of subdivisions
-	if (a_nSubdivisions < 1)
+	if (a_nSubdivisions < 3)
 	{
-		GenerateCube(a_fRadius * 2.0f, a_v3Color);
-		return;
+		a_nSubdivisions = 3;
 	}
 	if (a_nSubdivisions > 6)
 		a_nSubdivisions = 6;
@@ -387,8 +535,107 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
-	// -------------------------------
+	vector3 base(0, -a_fRadius, 0); //the bottom point of the sphere
+	vector3 top(0, a_fRadius, 0); //the top point of the sphere
+
+	int subDivisionHeight = a_nSubdivisions;
+	int subDivisionAxis = a_nSubdivisions;
+	std::vector<vector3> curr; //holds points at current sub division of sphere
+	std::vector<vector3> next; //holds points at next sub division of sphere
+
+	//Generate points on sphere (according to radius / subDivisions).
+	//Immediately draw the geometry after the points are defined.
+	for (int i = 0; i < subDivisionHeight - 1; i++)
+	{
+		//Get point on circle from xy-coordinates
+		float xyCircle_y = a_fRadius * glm::sin((glm::pi<float>() / 2 + ((i + 1) * glm::pi<float>() / subDivisionHeight)));
+		float xyCircle_x = a_fRadius * glm::cos((glm::pi<float>() / 2 + ((i + 1) * glm::pi<float>() / subDivisionHeight)));
+
+		//Create the radius for the circle on xz-coordinates
+		float xzRadius = glm::abs(xyCircle_x);
+
+		//Special Case: Connecting to the top point of the sphere
+		if (i == 0)
+		{
+			//Note: Y is on a circle where the radius stays the same (vertical sub divisions in image have constant radius)
+			//Note: X and Z are on a circle where the radius changes (horizonal sub divisions in image have changing radius)
+			for (int j = 0; j < subDivisionAxis; j++)
+			{
+				float xzCircle_x = xzRadius * glm::cos((j + 1) * glm::pi<float>() * 2 / subDivisionAxis);
+				float xzCircle_z = xzRadius * glm::sin((j + 1) * glm::pi<float>() * 2 / subDivisionAxis);
+				next.push_back(vector3(xzCircle_x, xyCircle_y, xzCircle_z));
+			}
+
+			for (int j = 0; j < subDivisionAxis; j++)
+			{
+				//Special Case: Drawing last triangle
+				if (j == subDivisionAxis - 1)
+				{
+					//Add triangle on Top (go clockwise)
+					AddTri(next[0], next[j], top);
+				}
+				else
+				{
+					//Add triangle on Top (go clockwise)
+					AddTri(next[j + 1], next[j], top);
+				}
+			}
+		}
+
+		//Normal Case: Draw sides of the sphere
+		if (i >= 1)
+		{
+			//Update the current and next vectors accordingly
+			curr = next;
+			next.clear();
+
+			//Note: Y is on a circle where the radius stays the same (vertical sub divisions in image have constant radius)
+			//Note: X and Z are on a circle where the radius changes (horizonal sub divisions in image have changing radius)
+			for (int j = 0; j < subDivisionAxis; j++)
+			{
+				float xzCircle_x = xzRadius * glm::cos((j + 1) * glm::pi<float>() * 2 / subDivisionAxis);
+				float xzCircle_z = xzRadius * glm::sin((j + 1) * glm::pi<float>() * 2 / subDivisionAxis);
+				next.push_back(vector3(xzCircle_x, xyCircle_y, xzCircle_z));
+			}
+
+			for (int j = 0; j < subDivisionAxis; j++)
+			{
+				//Special Case: Drawing last triangle
+				if (j == subDivisionAxis - 1)
+				{
+					//Add triangle on Top (go clockwise)
+					AddQuad(next[0], next[j], curr[0], curr[j]);
+				}
+				else
+				{
+					//Add triangle on Top (go clockwise)
+					AddQuad(next[j + 1], next[j], curr[j + 1], curr[j]);
+				}
+			}
+		}
+
+		
+		//Special Case: Connection to the bottom point of the sphere
+		if (i == a_nSubdivisions - 2)
+		{
+			//Note: Y is on a circle where the radius stays the same (vertical sub divisions in image have constant radius)
+			//Note: X and Z are on a circle where the radius changes (horizonal sub divisions in image have changing radius)
+			for (int j = 0; j < subDivisionAxis; j++)
+			{
+				//Special Case: Drawing last triangle
+				if (j == subDivisionAxis - 1)
+				{
+					//Add triangle on Top (go counter-clockwise)
+					AddTri(next[j], next[0], base);
+				}
+				else
+				{
+					//Add triangle on Top (go counter-clockwise)
+					AddTri(next[j], next[j + 1], base);
+				}
+			}
+		}
+	}
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);

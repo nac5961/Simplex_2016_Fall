@@ -2,14 +2,13 @@
 void Application::InitVariables(void)
 {
 	////Change this to your name and email
-<<<<<<< HEAD
 	//m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
 
 	////Alberto needed this at this position for software recording.
 	//m_pWindow->setPosition(sf::Vector2i(710, 0));
-=======
-	m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
->>>>>>> 2d040b46d588b02ab641f5e4effaa52dff4a98a8
+
+	m_pEntityMngr = EntityManager::GetInstance();
+	m_pEntityMngr->AddEntity("Minecraft\\Creeper.obj");
 }
 void Application::Update(void)
 {
@@ -28,20 +27,13 @@ void Application::Display(void)
 	ClearScreen();
 	
 	// draw a skybox
-	//m_pMeshMngr->AddSkyboxToRenderList();
-<<<<<<< HEAD
+	m_pMeshMngr->AddSkyboxToRenderList();
 	
 	//render list call
-	//m_uRenderCallCount = m_pMeshMngr->Render();
+	m_uRenderCallCount = m_pMeshMngr->Render();
 
-=======
-	//
-	//render list call
-	//m_uRenderCallCount = m_pMeshMngr->Render();
-	//
->>>>>>> 2d040b46d588b02ab641f5e4effaa52dff4a98a8
 	//clear the render list
-	//m_pMeshMngr->ClearRenderList();
+	m_pMeshMngr->ClearRenderList();
 	
 	//draw gui
 	DrawGUI();

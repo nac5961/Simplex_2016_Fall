@@ -1,6 +1,10 @@
 /*----------------------------------------------
 Programmer: Alberto Bobadilla (labigm@gmail.com)
+<<<<<<< HEAD
 Date: 2017/05
+=======
+Date: 2017/09
+>>>>>>> 2d040b46d588b02ab641f5e4effaa52dff4a98a8
 ----------------------------------------------*/
 #ifndef __MYMESH_H_
 #define __MYMESH_H_
@@ -206,4 +210,8 @@ public:
 USAGE:
 ARGUMENTS: ---
 OUTPUT: ---
+<<<<<<< HEAD
 */
+=======
+*/
+>>>>>>> 2d040b46d588b02ab641f5e4effaa52dff4a98a8
