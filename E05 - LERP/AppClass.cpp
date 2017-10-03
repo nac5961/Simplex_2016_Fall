@@ -29,6 +29,8 @@ void Application::InitVariables(void)
 	m_stopsList.push_back(vector3(5.0f, 2.0f, -5.0f));
 
 	m_stopsList.push_back(vector3(1.0f, 3.0f, -5.0f));
+
+	
 }
 void Application::Update(void)
 {
@@ -53,6 +55,7 @@ void Application::Display(void)
 	static float fTimer = 0;	//store the new timer
 	static uint uClock = m_pSystem->GenClock(); //generate a new clock for that timer
 	fTimer += m_pSystem->GetDeltaTime(uClock); //get the delta time for that timer
+	float fMax = 1.0f;
 
 	//calculate the current position
 	vector3 v3CurrentPos;
@@ -63,16 +66,47 @@ void Application::Display(void)
 
 	//your code goes here
 	v3CurrentPos = vector3(0.0f, 0.0f, 0.0f);
-	//-------------------
+	static int currentPoint = -1;
+	if (currentPoint == -1)
+	{
+		glm::lerp(v3CurrentPos, m_stopsList[0], 1.0f);
+		currentPoint++;
+		v3CurrentPos = m_stopsList[currentPoint];
+	}
+
+	if (currentPoint == m_stopsList.size() - 1)
+	{
+		glm::lerp(v3CurrentPos, m_stopsList[0], fTimer);
+	}
+	else
+	{
+		glm::lerp(v3CurrentPos, m_stopsList[currentPoint + 1], fTimer);
+	}
 	
 
+	if (fTimer > fMax)
+	{
+		fTimer = 0;
+		currentPoint++;
+		if (currentPoint == m_stopsList.size())
+		{
+			currentPoint = 0;
+		}
+	}
+
+
+	
+	
 
 	
 	matrix4 m4Model = glm::translate(v3CurrentPos);
+	m4Model = glm::translate(IDENTITY_M4, v3CurrentPos);
 	m_pModel->SetModelMatrix(m4Model);
 
 	m_pMeshMngr->Print("\nTimer: ");//Add a line on top
 	m_pMeshMngr->PrintLine(std::to_string(fTimer), C_YELLOW);
+
+	m_pMesh->Render(m4Projection, m4View, m4Model);
 
 	// Draw stops
 	for (uint i = 0; i < m_stopsList.size(); ++i)
