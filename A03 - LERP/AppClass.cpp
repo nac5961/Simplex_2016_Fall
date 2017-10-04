@@ -2,7 +2,7 @@
 void Application::InitVariables(void)
 {
 	////Change this to your name and email
-	//m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Nicholas Cato - nac5961@rit.edu";
 
 	////Alberto needed this at this position for software recording.
 	//m_pWindow->setPosition(sf::Vector2i(710, 0));
@@ -26,6 +26,7 @@ void Application::InitVariables(void)
 		m_uOrbits = 7;
 
 	float fSize = 1.0f; //initial size of orbits
+	float fRadius = 0.95f; //initial radius of orbits
 
 	//creating a color using the spectrum 
 	uint uColor = 650; //650 is Red
@@ -41,6 +42,26 @@ void Application::InitVariables(void)
 		m_shapeList.push_back(m_pMeshMngr->GenerateTorus(fSize, fSize - 0.1f, 3, i, v3Color)); //generate a custom torus and add it to the meshmanager
 		fSize += 0.5f; //increment the size for the next orbit
 		uColor -= static_cast<uint>(decrements); //decrease the wavelength
+
+		//Create a temp vector to store the points
+		std::vector<vector3> stops;
+
+		//Generate stops for the torus
+		for (unsigned int j = 0; j < i; j++)
+		{
+			//Find the point on the torus
+			float x = fRadius * glm::cos(j * glm::pi<float>() * 2 / i);
+			float y = fRadius * glm::sin(j * glm::pi<float>() * 2 / i);
+
+			//store the stops in our temp vector
+			stops.push_back(vector3(x, y, 0));
+		}
+
+		//Store the vector of stops in our list
+		stopsList.push_back(stops);
+
+		//update the radius
+		fRadius = (fSize * 2.0f - 0.1f) / 2.0f;
 	}
 }
 void Application::Update(void)
@@ -59,13 +80,43 @@ void Application::Display(void)
 	// Clear the screen
 	ClearScreen();
 
+	//Get a timer
+	static float fTimer = 0;	//store the new timer
+	static uint uClock = m_pSystem->GenClock(); //generate a new clock for that timer
+	fTimer += m_pSystem->GetDeltaTime(uClock); //get the delta time for that timer
+
+	//Detect if program just started
+	static bool start = true;
+
+	//Get a list of the current position for each sphere
+	static std::vector<unsigned int> currStop;
+
+	//On start fill the vector with all of the 
+	//initial positions for the spheres
+	if (start == true)
+	{
+		//Fill with 0s since that is the first stop
+		for (unsigned int i = 0; i < m_uOrbits; i++)
+		{
+			currStop.push_back(0);
+		}
+
+		start = false;
+	}
+
 	matrix4 m4View = m_pCameraMngr->GetViewMatrix(); //view Matrix
 	matrix4 m4Projection = m_pCameraMngr->GetProjectionMatrix(); //Projection Matrix
 	matrix4 m4Offset = IDENTITY_M4; //offset of the orbits, starts as the global coordinate system
 	/*
 		The following offset will orient the orbits as in the demo, start without it to make your life easier.
 	*/
-	//m4Offset = glm::rotate(IDENTITY_M4, 90.0f, AXIS_Z);
+	m4Offset = glm::rotate(IDENTITY_M4, 90.0f, AXIS_Z);
+
+	//Clamp fTimer
+	if (fTimer >= 1.0f)
+	{
+		fTimer = 1.0f;
+	}
 
 	// draw a shapes
 	for (uint i = 0; i < m_uOrbits; ++i)
@@ -74,10 +125,43 @@ void Application::Display(void)
 
 		//calculate the current position
 		vector3 v3CurrentPos = ZERO_V3;
+
+		//Lerp from one stop to the next
+		if (currStop[i] < stopsList[i].size() - 1)
+		{
+			v3CurrentPos = glm::lerp(stopsList[i][currStop[i]], stopsList[i][currStop[i] + 1], fTimer);
+		}
+
+		//Special Case: Lerp from last stop to first stop
+		else
+		{
+			v3CurrentPos = glm::lerp(stopsList[i][currStop[i]], stopsList[i][0], fTimer);
+		}
+
 		matrix4 m4Model = glm::translate(m4Offset, v3CurrentPos);
 
 		//draw spheres
 		m_pMeshMngr->AddSphereToRenderList(m4Model * glm::scale(vector3(0.1)), C_WHITE);
+	}
+
+	//Reset fTimer and update current stop
+	if (fTimer >= 1.0f)
+	{
+		fTimer = 0;
+
+		//Go through all of the current stops
+		for (unsigned int i = 0; i < currStop.size(); i++)
+		{
+			//Update the current stop
+			currStop[i]++;
+
+			//Transition back to the first stop after
+			//leaving the last stop
+			if (currStop[i] >= stopsList[i].size())
+			{
+				currStop[i] = 0;
+			}
+		}
 	}
 
 	//render list call
