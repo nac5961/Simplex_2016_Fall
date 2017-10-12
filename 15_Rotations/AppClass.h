@@ -14,6 +14,9 @@ Date: 2017/05
 
 class Application
 {
+	float m_rotationAngle = 0.0f;
+	//vector3 m_v3Rotation = vector3(0.0f, 0.0f, 0.0f);
+	vector4 m_v3Rotation = vector4(0.0f, 0.0f, 0.0f, 0.0f);
 	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
 	MyMesh* m_pMesh = nullptr;
 
