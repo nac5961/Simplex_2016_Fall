@@ -18,6 +18,7 @@ class Application
 	//vector3 m_v3Rotation = vector3(0.0f, 0.0f, 0.0f);
 	vector4 m_v3Rotation = vector4(0.0f, 0.0f, 0.0f, 0.0f);
 	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	glm::quat m_qRotation;
 	MyMesh* m_pMesh = nullptr;
 
 private:

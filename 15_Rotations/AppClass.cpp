@@ -50,6 +50,7 @@ void Application::Display(void)
 	//matrix4 m4Rotation = glm::rotate(IDENTITY_M4, /*fTimer * */ 60.0f, vector3(0.0f, 0.0f, 1.0f));
 	matrix4 m4Model = m4RotX * m4RotZ * m4RotY;
 	m4Model = ToMatrix4(q1X) * ToMatrix4(q1Z) * ToMatrix4(q1Y);
+	m4Model = ToMatrix4(m_qRotation);
 
 	/*
 	for (uint i = 0; i < 2500; ++i)

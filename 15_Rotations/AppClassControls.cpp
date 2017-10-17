@@ -133,6 +133,7 @@ void Application::ProcessKeyReleased(sf::Event a_event)
 	case sf::Keyboard::R:
 		//m_v3Rotation = vector3(0.0f,0.0f,0.0f);
 		m_v3Rotation = vector4(0.0f, 0.0f, 0.0f, 0.0f);
+		m_qRotation = glm::quat();
 		//m_rotationAngle = 0.0f;
 		break;
 	}
@@ -424,11 +425,13 @@ void Application::ProcessKeyboard(void)
 		if (fMultiplier)
 		{
 			m_v3Rotation.x -= 1.0f;
+			m_qRotation = m_qRotation * glm::angleAxis(-1.0f, vector3(1.0f,0.0f,0.0f));
 			
 		}
 		else
 		{
 			m_v3Rotation.x += 1.0f;
+			m_qRotation = m_qRotation * glm::angleAxis(1.0f, vector3(1.0f, 0.0f, 0.0f));
 		}
 	}
 
@@ -437,10 +440,12 @@ void Application::ProcessKeyboard(void)
 		if (fMultiplier)
 		{
 			m_v3Rotation.y -= 1.0f;
+			m_qRotation = m_qRotation * glm::angleAxis(-1.0f, vector3(0.0f, 1.0f, 0.0f));
 		}
 		else
 		{
 			m_v3Rotation.y += 1.0f;
+			m_qRotation = m_qRotation * glm::angleAxis(1.0f, vector3(0.0f, 1.0f, 0.0f));
 		}
 	}
 
@@ -449,10 +454,12 @@ void Application::ProcessKeyboard(void)
 		if (fMultiplier)
 		{
 			m_v3Rotation.z -= 1.0f;
+			m_qRotation = m_qRotation * glm::angleAxis(-1.0f, vector3(0.0f, 0.0f, 1.0f));
 		}
 		else
 		{
 			m_v3Rotation.z += 1.0f;
+			m_qRotation = m_qRotation * glm::angleAxis(1.0f, vector3(0.0f, 0.0f, 1.0f));
 		}
 	}
 }
