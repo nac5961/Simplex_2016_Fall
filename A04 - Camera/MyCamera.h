@@ -12,6 +12,10 @@ namespace Simplex
 
 class MyCamera
 {
+	quaternion m_qRotation;
+	vector3 m_v3Forward = vector3(0.0f, 0.0f, -1.0f);
+	vector3 m_v3Right = vector3(1.0f, 0.0f, 0.0f);
+
 	vector3 m_v3Position = vector3(0.0f, 0.0f, 10.0f); //Where my camera is located
 	vector3 m_v3Target = vector3(0.0f, 0.0f, 0.0f); //What I'm looking at
 	vector3 m_v3Up = vector3(0.0f, 1.0f, 0.0f); //What is up
@@ -211,6 +215,48 @@ public:
 	OUTPUT: ---
 	*/
 	void CalculateProjectionMatrix(void);
+
+	/*
+	USAGE: Sets the rotation of the camera
+	ARGUMENTS: ---
+	OUTPUT: ---
+	*/
+	void SetRotation(quaternion a_qRotation);
+
+	/*
+	USAGE: Gets the rotation of the camera
+	ARGUMENTS: ---
+	OUTPUT: ---
+	*/
+	quaternion GetRotation(void);
+
+	/*
+	USAGE: Sets the forward vector of the camera
+	ARGUMENTS: ---
+	OUTPUT: ---
+	*/
+	void SetForward(vector3 a_v3Forward);
+
+	/*
+	USAGE: Gets the forward vector of the camera
+	ARGUMENTS: ---
+	OUTPUT: ---
+	*/
+	vector3 GetForward(void);
+
+	/*
+	USAGE: Sets the forward vector of the camera
+	ARGUMENTS: ---
+	OUTPUT: ---
+	*/
+	void SetRight(vector3 a_v3Right);
+
+	/*
+	USAGE: Gets the forward vector of the camera
+	ARGUMENTS: ---
+	OUTPUT: ---
+	*/
+	vector3 GetRight(void);
 };
 
 } //namespace Simplex

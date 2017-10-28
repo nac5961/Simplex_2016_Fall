@@ -3,10 +3,13 @@ using namespace Simplex;
 
 //Accessors
 void Simplex::MyCamera::SetPosition(vector3 a_v3Position) { m_v3Position = a_v3Position; }
+vector3 Simplex::MyCamera::GetPosition() { return m_v3Position; }
 
 void Simplex::MyCamera::SetTarget(vector3 a_v3Target) { m_v3Target = a_v3Target; }
+vector3 Simplex::MyCamera::GetTarget() { return m_v3Target; }
 
 void Simplex::MyCamera::SetUp(vector3 a_v3Up) { m_v3Up = a_v3Up; }
+vector3 Simplex::MyCamera::GetUp() { return m_v3Up; }
 
 void Simplex::MyCamera::SetPerspective(bool a_bPerspective) { m_bPerspective = a_bPerspective; }
 
@@ -23,6 +26,15 @@ void Simplex::MyCamera::SetVerticalPlanes(vector2 a_v2Vertical) { m_v2Vertical =
 matrix4 Simplex::MyCamera::GetProjectionMatrix(void) { return m_m4Projection; }
 
 matrix4 Simplex::MyCamera::GetViewMatrix(void) { CalculateViewMatrix(); return m_m4View; }
+
+void Simplex::MyCamera::SetRotation(quaternion a_qRotation) { m_qRotation = a_qRotation; }
+quaternion Simplex::MyCamera::GetRotation(){ return m_qRotation; }
+
+void Simplex::MyCamera::SetForward(vector3 a_v3Forward) { m_v3Forward = a_v3Forward; }
+vector3 Simplex::MyCamera::GetForward() { return m_v3Forward; }
+
+void Simplex::MyCamera::SetRight(vector3 a_v3Forward) { m_v3Right = a_v3Forward; }
+vector3 Simplex::MyCamera::GetRight() { return m_v3Right; }
 
 Simplex::MyCamera::MyCamera()
 {
