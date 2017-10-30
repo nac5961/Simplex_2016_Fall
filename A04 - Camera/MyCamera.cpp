@@ -36,6 +36,8 @@ vector3 Simplex::MyCamera::GetForward() { return m_v3Forward; }
 void Simplex::MyCamera::SetRight(vector3 a_v3Forward) { m_v3Right = a_v3Forward; }
 vector3 Simplex::MyCamera::GetRight() { return m_v3Right; }
 
+float Simplex::MyCamera::GetRotationMultiplier() { return m_fRotationMultiplier; }
+
 Simplex::MyCamera::MyCamera()
 {
 	Init(); //Init the object with default values

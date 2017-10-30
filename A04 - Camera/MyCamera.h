@@ -12,9 +12,10 @@ namespace Simplex
 
 class MyCamera
 {
-	quaternion m_qRotation;
-	vector3 m_v3Forward = vector3(0.0f, 0.0f, -1.0f);
-	vector3 m_v3Right = vector3(1.0f, 0.0f, 0.0f);
+	float m_fRotationMultiplier = 6.0f; //Rotates camera faster
+	quaternion m_qRotation; //Rotates camera
+	vector3 m_v3Forward = vector3(0.0f, 0.0f, -1.0f); //Where my camera is facing
+	vector3 m_v3Right = vector3(1.0f, 0.0f, 0.0f); //Rightside of camera
 
 	vector3 m_v3Position = vector3(0.0f, 0.0f, 10.0f); //Where my camera is located
 	vector3 m_v3Target = vector3(0.0f, 0.0f, 0.0f); //What I'm looking at
@@ -245,18 +246,25 @@ public:
 	vector3 GetForward(void);
 
 	/*
-	USAGE: Sets the forward vector of the camera
+	USAGE: Sets the right vector of the camera
 	ARGUMENTS: ---
 	OUTPUT: ---
 	*/
 	void SetRight(vector3 a_v3Right);
 
 	/*
-	USAGE: Gets the forward vector of the camera
+	USAGE: Gets the right vector of the camera
 	ARGUMENTS: ---
 	OUTPUT: ---
 	*/
 	vector3 GetRight(void);
+
+	/*
+	USAGE: Gets the rotation multiplier of the camera
+	ARGUMENTS: ---
+	OUTPUT: ---
+	*/
+	float GetRotationMultiplier(void);
 };
 
 } //namespace Simplex

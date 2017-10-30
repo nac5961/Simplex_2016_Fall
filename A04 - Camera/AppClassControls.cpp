@@ -369,32 +369,45 @@ void Application::CameraRotation(float a_fSpeed)
 		fAngleX += fDeltaMouse * a_fSpeed;
 	}
 
-	
-	//Get rotation of camera
+	//Get camera values
+	float rotationMultiplier = m_pCamera->GetRotationMultiplier();
+	vector3 right = m_pCamera->GetRight();
+	vector3 forward = m_pCamera->GetForward();
+	vector3 up = m_pCamera->GetUp();
+	vector3 target = m_pCamera->GetTarget();
+	vector3 pos = m_pCamera->GetPosition();
 	quaternion rotation = m_pCamera->GetRotation();
 
-	//Rotate accordingly
-	rotation = rotation * glm::angleAxis(fAngleX, vector3(1.0f, 0.0f, 0.0f));
-	rotation = rotation * glm::angleAxis(fAngleY, vector3(0.0f, 1.0f, 0.0f));
-
-	//Apply rotation to up
-	vector3 up = m_pCamera->GetUp();
-	vector4 upRotated = vector4(up.x, up.y, up.z, 1) * ToMatrix4(rotation);
-	//up = vector3(upRotated.x, upRotated.y, upRotated.z);
-
-	//Apply rotation to target
-	vector3 target = m_pCamera->GetTarget();
-	vector4 targetRotated = vector4(target.x, target.y, target.z, 1) * ToMatrix4(rotation);
-	//target = vector3(targetRotated.x, targetRotated.y, targetRotated.z);
-
 	//Update rotation
-	//m_pCamera->SetRotation(rotation);
+	rotation = rotation * glm::angleAxis(-fAngleX * rotationMultiplier, right);
+	rotation = rotation * glm::angleAxis(fAngleY * rotationMultiplier, vector3(0.0f, 1.0f, 0.0f));
 
-	//Update up
-	//m_pCamera->SetUp(up);
+	//Rotate forward
+	vector4 forwardRotated = ToMatrix4(rotation) * vector4(forward.x, forward.y, forward.z, 0);
+	forward = vector3(forwardRotated.x, forwardRotated.y, forwardRotated.z);
+
+	//Rotate right
+	vector4 rightRotated = ToMatrix4(rotation) * vector4(right.x, right.y, right.z, 0);
+	right = vector3(rightRotated.x, rightRotated.y, rightRotated.z);
+
+	//Rotate up
+	vector4 upRotated = ToMatrix4(rotation) * vector4(up.x, up.y, up.z, 0);
+	up = vector3(upRotated.x, upRotated.y, upRotated.z);
+
+	//Set target
+	target = pos + forward * 10.0f;
 
 	//Update target
-	//m_pCamera->SetTarget(target);
+	m_pCamera->SetTarget(target);
+
+	//Update forward
+	m_pCamera->SetForward(forward);
+
+	//Update right
+	m_pCamera->SetRight(right);
+
+	//Update up
+	m_pCamera->SetUp(up);
 
 	//Change the Yaw and the Pitch of the camera
 	SetCursorPos(CenterX, CenterY);//Position the mouse in the center
@@ -414,230 +427,7 @@ void Application::ProcessKeyboard(void)
 	if (fMultiplier)
 		fSpeed *= 5.0f;
 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::I))
-	{
-		//Get camera values
-		vector3 right = m_pCamera->GetRight();
-		vector3 forward = m_pCamera->GetForward();
-		vector3 pos = m_pCamera->GetPosition();
-		vector3 up = m_pCamera->GetUp();
-		vector3 target = m_pCamera->GetTarget();
-		quaternion rotation = m_pCamera->GetRotation();
-
-		//Update rotation
-		rotation = rotation * glm::angleAxis(1.0f, vector3(1.0f, 0.0f, 0.0f));
-
-		//Rotate forward
-		vector4 forwardRotated = ToMatrix4(rotation) * vector4(forward.x, forward.y, forward.z, 0);
-		forward = vector3(forwardRotated.x, forwardRotated.y, forwardRotated.z);
-
-		//Rotate right
-		vector4 rightRotated = ToMatrix4(rotation) * vector4(right.x, right.y, right.z, 0);
-		right = vector3(rightRotated.x, rightRotated.y, rightRotated.z);
-
-		//Rotate up
-		vector4 upRotated = ToMatrix4(rotation) * vector4(up.x, up.y, up.z, 0);
-		up = vector3(upRotated.x, upRotated.y, upRotated.z);
-
-
-		//Rotate target
-		//vector4 targetRotated = ToMatrix4(rotation) * vector4(target.x, target.y, target.z, 0);
-		//target = vector3(targetRotated.x, targetRotated.y, targetRotated.z);
-
-		//Rotate position
-		//vector4 positionRotated = ToMatrix4(rotation) * vector4(pos.x, pos.y, pos.z, 0);
-		//pos = vector3(positionRotated.x, positionRotated.y, positionRotated.z);
-
-		//Update target
-		target = pos + forward * 10.0f;
-
-		//Update forward
-		m_pCamera->SetForward(forward);
-
-		//Update right
-		m_pCamera->SetRight(right);
-
-		//Update position
-		m_pCamera->SetPosition(pos);
-
-		//Update up
-		m_pCamera->SetUp(up);
-
-		//Update target
-		m_pCamera->SetTarget(target);
-
-		//Update rotation
-		//m_pCamera->SetRotation(rotation);
-	}
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::K))
-	{
-		//Get camera values
-		vector3 right = m_pCamera->GetRight();
-		vector3 forward = m_pCamera->GetForward();
-		vector3 pos = m_pCamera->GetPosition();
-		vector3 up = m_pCamera->GetUp();
-		vector3 target = m_pCamera->GetTarget();
-		quaternion rotation = m_pCamera->GetRotation();
-
-		//Update rotation
-		rotation = rotation * glm::angleAxis(-1.0f, vector3(1.0f, 0.0f, 0.0f));
-
-		//Rotate forward
-		vector4 forwardRotated = ToMatrix4(rotation) * vector4(forward.x, forward.y, forward.z, 0);
-		forward = vector3(forwardRotated.x, forwardRotated.y, forwardRotated.z);
-
-		//Rotate right
-		vector4 rightRotated = ToMatrix4(rotation) * vector4(right.x, right.y, right.z, 0);
-		right = vector3(rightRotated.x, rightRotated.y, rightRotated.z);
-
-		//Rotate up
-		vector4 upRotated = ToMatrix4(rotation) * vector4(up.x, up.y, up.z, 0);
-		up = vector3(upRotated.x, upRotated.y, upRotated.z);
-
-
-		//Rotate target
-		//vector4 targetRotated = ToMatrix4(rotation) * vector4(target.x, target.y, target.z, 0);
-		//target = vector3(targetRotated.x, targetRotated.y, targetRotated.z);
-
-		//Rotate position
-		//vector4 positionRotated = ToMatrix4(rotation) * vector4(pos.x, pos.y, pos.z, 0);
-		//pos = vector3(positionRotated.x, positionRotated.y, positionRotated.z);
-
-		//Update target
-		target = pos + forward * 10.0f;
-
-		//Update forward
-		m_pCamera->SetForward(forward);
-
-		//Update right
-		m_pCamera->SetRight(right);
-
-		//Update position
-		m_pCamera->SetPosition(pos);
-
-		//Update up
-		m_pCamera->SetUp(up);
-
-		//Update target
-		m_pCamera->SetTarget(target);
-
-		//Update rotation
-		//m_pCamera->SetRotation(rotation);
-	}
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::J))
-	{
-		//Get camera values
-		vector3 right = m_pCamera->GetRight();
-		vector3 forward = m_pCamera->GetForward();
-		vector3 pos = m_pCamera->GetPosition();
-		vector3 up = m_pCamera->GetUp();
-		vector3 target = m_pCamera->GetTarget();
-		quaternion rotation = m_pCamera->GetRotation();
-
-		//Update rotation
-		rotation = rotation * glm::angleAxis(1.0f, vector3(0.0f, 1.0f, 0.0f));
-
-		//Rotate forward
-		vector4 forwardRotated = ToMatrix4(rotation) * vector4(forward.x, forward.y, forward.z, 0);
-		forward = vector3(forwardRotated.x, forwardRotated.y, forwardRotated.z);
-
-		//Rotate right
-		vector4 rightRotated = ToMatrix4(rotation) * vector4(right.x, right.y, right.z, 0);
-		right = vector3(rightRotated.x, rightRotated.y, rightRotated.z);
-
-		//Rotate up
-		vector4 upRotated = ToMatrix4(rotation) * vector4(up.x, up.y, up.z, 0);
-		up = vector3(upRotated.x, upRotated.y, upRotated.z);
-
-
-		//Rotate target
-		//vector4 targetRotated = ToMatrix4(rotation) * vector4(target.x, target.y, target.z, 0);
-		//target = vector3(targetRotated.x, targetRotated.y, targetRotated.z);
-
-		//Rotate position
-		//vector4 positionRotated = ToMatrix4(rotation) * vector4(pos.x, pos.y, pos.z, 0);
-		//pos = vector3(positionRotated.x, positionRotated.y, positionRotated.z);
-
-		//Update target
-		target = pos + forward * 10.0f;
-
-		//Update forward
-		m_pCamera->SetForward(forward);
-
-		//Update right
-		m_pCamera->SetRight(right);
-
-		//Update position
-		m_pCamera->SetPosition(pos);
-
-		//Update up
-		m_pCamera->SetUp(up);
-
-		//Update target
-		m_pCamera->SetTarget(target);
-
-		//Update rotation
-		//m_pCamera->SetRotation(rotation);
-	}
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::L))
-	{
-		//Get camera values
-		vector3 right = m_pCamera->GetRight();
-		vector3 forward = m_pCamera->GetForward();
-		vector3 pos = m_pCamera->GetPosition();
-		vector3 up = m_pCamera->GetUp();
-		vector3 target = m_pCamera->GetTarget();
-		quaternion rotation = m_pCamera->GetRotation();
-
-		//Update rotation
-		rotation = rotation * glm::angleAxis(-1.0f, vector3(0.0f, 1.0f, 0.0f));
-
-		//Rotate forward
-		vector4 forwardRotated = ToMatrix4(rotation) * vector4(forward.x, forward.y, forward.z, 0);
-		forward = vector3(forwardRotated.x, forwardRotated.y, forwardRotated.z);
-
-		//Rotate right
-		vector4 rightRotated = ToMatrix4(rotation) * vector4(right.x, right.y, right.z, 0);
-		right = vector3(rightRotated.x, rightRotated.y, rightRotated.z);
-
-		//Rotate up
-		vector4 upRotated = ToMatrix4(rotation) * vector4(up.x, up.y, up.z, 0);
-		up = vector3(upRotated.x, upRotated.y, upRotated.z);
-
-
-		//Rotate target
-		//vector4 targetRotated = ToMatrix4(rotation) * vector4(target.x, target.y, target.z, 0);
-		//target = vector3(targetRotated.x, targetRotated.y, targetRotated.z);
-
-		//Rotate position
-		//vector4 positionRotated = ToMatrix4(rotation) * vector4(pos.x, pos.y, pos.z, 0);
-		//pos = vector3(positionRotated.x, positionRotated.y, positionRotated.z);
-
-		//Update target
-		target = pos + forward * 10.0f;
-
-		//Update forward
-		m_pCamera->SetForward(forward);
-
-		//Update right
-		m_pCamera->SetRight(right);
-
-		//Update position
-		m_pCamera->SetPosition(pos);
-
-		//Update up
-		m_pCamera->SetUp(up);
-
-		//Update target
-		m_pCamera->SetTarget(target);
-
-		//Update rotation
-		//m_pCamera->SetRotation(rotation);
-	}
-
+	//Forward
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) 
 	{
 		//Get camera values
@@ -656,6 +446,7 @@ void Application::ProcessKeyboard(void)
 		m_pCamera->SetTarget(target);	
 	}
 
+	//Backward
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 	{
 		//Get camera values
@@ -674,6 +465,7 @@ void Application::ProcessKeyboard(void)
 		m_pCamera->SetTarget(target);
 	}
 
+	//Left
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 	{
 		//Get camera values
@@ -692,6 +484,7 @@ void Application::ProcessKeyboard(void)
 		m_pCamera->SetTarget(target);
 	}
 
+	//Right
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 	{
 		//Get camera values
