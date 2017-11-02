@@ -593,3 +593,7 @@ void Simplex::MyMesh::Render(MyCamera * a_pCamera, std::vector<matrix4*> a_ToWor
 		}
 	}
 }
+std::vector<vector3> MyMesh::GetVertexList()
+{
+	return m_lVertexPos;
+}
