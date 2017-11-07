@@ -85,8 +85,75 @@ void MyRigidBody::SetModelMatrix(matrix4 a_m4ModelMatrix)
 	m_m4ToWorld = a_m4ModelMatrix;
 	
 	//your code goes here---------------------
-	m_v3MinG = m_v3MinL;
-	m_v3MaxG = m_v3MaxL;
+
+	//Vector to store the 8 corners of the OBB (Oriented Bounding Box)
+	std::vector<vector3> corners;
+
+	//Find the 8 corners of the OBB
+	//Back
+	corners.push_back(m_v3MinL); //1
+	corners.push_back(vector3(m_v3MaxL.x, m_v3MinL.y, m_v3MinL.z)); //2
+	corners.push_back(vector3(m_v3MinL.x, m_v3MaxL.y, m_v3MinL.z)); //3
+	corners.push_back(vector3(m_v3MaxL.x, m_v3MaxL.y, m_v3MinL.z)); //4
+
+	//Front
+	corners.push_back(vector3(m_v3MinL.x, m_v3MinL.y, m_v3MaxL.z)); //5
+	corners.push_back(vector3(m_v3MaxL.x, m_v3MinL.y, m_v3MaxL.z)); //6
+	corners.push_back(vector3(m_v3MinL.x, m_v3MaxL.y, m_v3MaxL.z)); //7
+	corners.push_back(m_v3MaxL); //8
+
+	//Globalize the 8 corners of the OBB
+	for (uint i = 0; i < corners.size(); i++)
+	{
+		corners[i] = vector3(a_m4ModelMatrix * vector4(corners[i], 1));
+	}
+
+	//Set max and min as the first vector in the list
+	m_v3MaxG = m_v3MinG = corners[0];
+
+	//Find the min and max for the 8 corners
+	for (uint i = 1; i < corners.size(); i++)
+	{
+		//Min x
+		if (m_v3MinG.x > corners[i].x)
+		{
+			m_v3MinG.x = corners[i].x;
+		}
+
+		//Max x
+		else if (m_v3MaxG.x < corners[i].x)
+		{
+			m_v3MaxG.x = corners[i].x;
+		}
+
+		//Min y
+		if (m_v3MinG.y > corners[i].y)
+		{
+			m_v3MinG.y = corners[i].y;
+		}
+
+		//Max y
+		else if (m_v3MaxG.y < corners[i].y)
+		{
+			m_v3MaxG.y = corners[i].y;
+		}
+
+		//Min z
+		if (m_v3MinG.z > corners[i].z)
+		{
+			m_v3MinG.z = corners[i].z;
+		}
+
+		//Max z
+		else if (m_v3MaxG.z < corners[i].z)
+		{
+			m_v3MaxG.z = corners[i].z;
+		}
+	}
+	
+
+	//m_v3MinG = m_v3MinL;
+	//m_v3MaxG = m_v3MaxL;
 	//----------------------------------------
 
 	//we calculate the distance between min and max vectors
