@@ -24,6 +24,8 @@ class MyRigidBody
 	vector3 m_v3ColorColliding = C_RED; //Color when colliding
 	vector3 m_v3ColorNotColliding = C_WHITE; //Color when not colliding
 
+	vector3 m_vLocalXYZ[3]; //local xyz axes (for OBB)
+
 	vector3 m_v3Center = ZERO_V3; //center point in local space
 	vector3 m_v3MinL = ZERO_V3; //minimum coordinate in local space (for OBB)
 	vector3 m_v3MaxL = ZERO_V3; //maximum coordinate in local space (for OBB)
@@ -225,6 +227,20 @@ public:
 	Output: ---
 	*/
 	void SetModelMatrix(matrix4 a_m4ModelMatrix);
+
+	/*
+	Usage: Gets one of the local axes of the model
+	Arguments: index of axes to get (x: 0, y: 1, z: 2)
+	Output: ---
+	*/
+	vector3 GetLocalAxis(int a_iIndex);
+
+	/*
+	Usage: Sets xyz axes back to its default values
+	Arguments: none
+	Output: ---
+	*/
+	void ResetLocalAxis();
 #pragma endregion
 	
 private:

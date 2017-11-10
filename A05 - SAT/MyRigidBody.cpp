@@ -76,6 +76,14 @@ vector3 MyRigidBody::GetMinGlobal(void) { return m_v3MinG; }
 vector3 MyRigidBody::GetMaxGlobal(void) { return m_v3MaxG; }
 vector3 MyRigidBody::GetHalfWidth(void) { return m_v3HalfWidth; }
 matrix4 MyRigidBody::GetModelMatrix(void) { return m_m4ToWorld; }
+vector3 MyRigidBody::GetLocalAxis(int a_iIndex) { return m_vLocalXYZ[a_iIndex]; }
+void MyRigidBody::ResetLocalAxis()
+{
+	//Reset to default
+	m_vLocalXYZ[0] = AXIS_X;
+	m_vLocalXYZ[1] = AXIS_Y;
+	m_vLocalXYZ[2] = AXIS_Z;
+}
 void MyRigidBody::SetModelMatrix(matrix4 a_m4ModelMatrix)
 {
 	//to save some calculations if the model matrix is the same there is nothing to do here
@@ -123,6 +131,16 @@ void MyRigidBody::SetModelMatrix(matrix4 a_m4ModelMatrix)
 
 	//we calculate the distance between min and max vectors
 	m_v3ARBBSize = m_v3MaxG - m_v3MinG;
+
+	//Reset axis since the model matrix is reset every frame 
+	//before applying the matrix to the model
+	ResetLocalAxis();
+
+	//Rotate the local xyz axes
+	for (int i = 0; i < 3; i++)
+	{
+		m_vLocalXYZ[i] = vector3(m_m4ToWorld * vector4(m_vLocalXYZ[i], 0.0f));
+	}
 }
 //The big 3
 MyRigidBody::MyRigidBody(std::vector<vector3> a_pointList)
@@ -163,6 +181,16 @@ MyRigidBody::MyRigidBody(std::vector<vector3> a_pointList)
 
 	//Get the distance between the center and either the min or the max
 	m_fRadius = glm::distance(m_v3Center, m_v3MinL);
+
+	//Set the local xyz axes
+	//X
+	m_vLocalXYZ[0] = AXIS_X;
+
+	//Y
+	m_vLocalXYZ[1] = AXIS_Y;
+
+	//Z
+	m_vLocalXYZ[2] = AXIS_Z;
 }
 MyRigidBody::MyRigidBody(MyRigidBody const& a_pOther)
 {
@@ -287,6 +315,117 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	(eSATResults::SAT_NONE has a value of 0)
 	*/
 
+	//Variables to store projected radii
+	float radius;
+	float otherRadius;
+
+	//Variables to store rotation matrices
+	matrix3 rotation;
+	matrix3 absRotation;
+
+	//Variable to store halfwidth vector
+	vector3 otherHalfWidth = a_pOther->GetHalfWidth();
+
+	//Variables to store center point
+	vector3 center = GetCenterGlobal();
+	vector3 otherCenter = a_pOther->GetCenterGlobal();
+
+	//Variable to store local xyz axes
+	vector3 otherLocalXYZ[3];
+	for (int i = 0; i < 3; i++)
+	{
+		otherLocalXYZ[i] = a_pOther->GetLocalAxis(i);
+	}
+
+	//Get the rotation matrix bring a_pOther in the same coordinate frame as this rigidbody
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			rotation[i][j] = glm::dot(m_vLocalXYZ[i], otherLocalXYZ[j]);
+		}
+	}
+
+	//Compute the translation vector from this rigidbody to a_pOther
+	vector3 translation = otherCenter - center;
+
+	//Bring translation into this rigidbody's coordinate frame
+	translation = vector3(glm::dot(translation, m_vLocalXYZ[0]), glm::dot(translation, m_vLocalXYZ[1]), glm::dot(translation, m_vLocalXYZ[2]));
+
+	//Get the absolute value of the rotation matrix and add an EPSILON
+	//to avoid errors when two edges are parallel
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			absRotation[i][j] = glm::abs(rotation[i][j]) + glm::epsilon<float>();
+		}
+	}
+
+	//Test xyz axes of this rigidbody
+	for (int i = 0; i < 3; i++)
+	{
+		radius = m_v3HalfWidth[i];
+		otherRadius = otherHalfWidth[0] * absRotation[i][0] + otherHalfWidth[1] * absRotation[i][1] + otherHalfWidth[2] * absRotation[i][2];
+		if (glm::abs(translation[i]) > radius + otherRadius) return 1;
+	}
+
+	//Test xyz axes of a_pOther
+	for (int i = 0; i < 3; i++)
+	{
+		radius = m_v3HalfWidth[0] * absRotation[0][i] + m_v3HalfWidth[1] * absRotation[1][i] + m_v3HalfWidth[2] * absRotation[2][i];
+		otherRadius = otherHalfWidth[i];
+		if (glm::abs(translation[0] * rotation[0][i] + translation[1] * rotation[1][i] + translation[2] * rotation[2][i]) > radius + otherRadius) return 1;
+	}
+
+	//Test cross product of this rigidbody's x with a_pOther rigidbody's x
+	radius = m_v3HalfWidth[1] * absRotation[2][0] + m_v3HalfWidth[2] * absRotation[1][0];
+	otherRadius = otherHalfWidth[1] * absRotation[0][2] + otherHalfWidth[2] * absRotation[0][1];
+	if (glm::abs(translation[2] * rotation[1][0] - translation[1] * rotation[2][0]) > radius + otherRadius) return 1;
+
+	//Test cross product of this rigidbody's x with a_pOther rigidbody's y
+	radius = m_v3HalfWidth[1] * absRotation[2][1] + m_v3HalfWidth[2] * absRotation[1][1];
+	otherRadius = otherHalfWidth[0] * absRotation[0][2] + otherHalfWidth[2] * absRotation[0][0];
+	if (glm::abs(translation[2] * rotation[1][1] - translation[1] * rotation[2][1]) > radius + otherRadius) return 1;
+
+	//Test cross product of this rigidbody's x with a_pOther rigidbody's z
+	radius = m_v3HalfWidth[1] * absRotation[2][2] + m_v3HalfWidth[2] * absRotation[1][2];
+	otherRadius = otherHalfWidth[0] * absRotation[0][1] + otherHalfWidth[1] * absRotation[0][0];
+	if (glm::abs(translation[2] * rotation[1][2] - translation[1] * rotation[2][2]) > radius + otherRadius) return 1;
+
+	//Test cross product of this rigidbody's y with a_pOther rigidbody's x
+	radius = m_v3HalfWidth[0] * absRotation[2][0] + m_v3HalfWidth[2] * absRotation[0][0];
+	otherRadius = otherHalfWidth[1] * absRotation[1][2] + otherHalfWidth[2] * absRotation[1][1];
+	if (glm::abs(translation[0] * rotation[2][0] - translation[2] * rotation[0][0]) > radius + otherRadius) return 1;
+
+	//Test cross product of this rigidbody's y with a_pOther rigidbody's y
+	radius = m_v3HalfWidth[0] * absRotation[2][1] + m_v3HalfWidth[2] * absRotation[0][1];
+	otherRadius = otherHalfWidth[0] * absRotation[1][2] + otherHalfWidth[2] * absRotation[1][0];
+	if (glm::abs(translation[0] * rotation[2][1] - translation[2] * rotation[0][1]) > radius + otherRadius) return 1;
+
+	//Test cross product of this rigidbody's y with a_pOther rigidbody's z
+	radius = m_v3HalfWidth[0] * absRotation[2][2] + m_v3HalfWidth[2] * absRotation[0][2];
+	otherRadius = otherHalfWidth[0] * absRotation[1][1] + otherHalfWidth[1] * absRotation[1][0];
+	if (glm::abs(translation[0] * rotation[2][2] - translation[2] * rotation[0][2]) > radius + otherRadius) return 1;
+
+	//Test cross product of this rigidbody's z with a_pOther rigidbody's x
+	radius = m_v3HalfWidth[0] * absRotation[1][0] + m_v3HalfWidth[1] * absRotation[0][0];
+	otherRadius = otherHalfWidth[1] * absRotation[2][2] + otherHalfWidth[2] * absRotation[2][1];
+	if (glm::abs(translation[1] * rotation[0][0] - translation[0] * rotation[1][0]) > radius + otherRadius) return 1;
+
+	//Test cross product of this rigidbody's z with a_pOther rigidbody's y
+	radius = m_v3HalfWidth[0] * absRotation[1][1] + m_v3HalfWidth[1] * absRotation[0][1];
+	otherRadius = otherHalfWidth[0] * absRotation[2][2] + otherHalfWidth[2] * absRotation[2][0];
+	if (glm::abs(translation[1] * rotation[0][1] - translation[0] * rotation[1][1]) > radius + otherRadius) return 1;
+
+	//Test cross product of this rigidbody's z with a_pOther rigidbody's y
+	radius = m_v3HalfWidth[0] * absRotation[1][2] + m_v3HalfWidth[1] * absRotation[0][2];
+	otherRadius = otherHalfWidth[0] * absRotation[2][1] + otherHalfWidth[1] * absRotation[2][0];
+	if (glm::abs(translation[1] * rotation[0][2] - translation[0] * rotation[1][2]) > radius + otherRadius) return 1;
+
+	//No separating axis found, so objects are colliding
+	return 0;
+
 	//there is no axis test that separates this two objects
-	return eSATResults::SAT_NONE;
+	//return eSATResults::SAT_NONE;
 }
