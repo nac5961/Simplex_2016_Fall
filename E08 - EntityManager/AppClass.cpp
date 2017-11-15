@@ -3,7 +3,7 @@ using namespace Simplex;
 void Application::InitVariables(void)
 {
 	////Change this to your name and email
-	//m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Nicholas Cato - nac5961@rit.edu";
 
 	////Alberto needed this at this position for software recording.
 	//m_pWindow->setPosition(sf::Vector2i(710, 0));
@@ -28,17 +28,17 @@ void Application::InitVariables(void)
 	//add an entity
 	m_pEntityMngr->AddEntity("Minecraft\\Cow.obj", "Cow");
 	//set the model matrix
-	m_pEntityMngr->SetModelMatrix(glm::translate(vector3(2.0f, -1.5f, -1.0f)));
+	m_pEntityMngr->SetModelMatrix(glm::translate(vector3(2.0f, -1.5f, -1.0f)), "Cow");
 	
 	//add an entity
 	m_pEntityMngr->AddEntity("Minecraft\\Zombie.obj", "Zombie");
 	//set the model matrix
-	m_pEntityMngr->SetModelMatrix(glm::translate(vector3(0.0f, -2.5f, 0.0f)));
+	m_pEntityMngr->SetModelMatrix(glm::translate(vector3(0.0f, -2.5f, 0.0f)), "Zombie");
 
 	//add an entity
 	m_pEntityMngr->AddEntity("Minecraft\\Pig.obj", "Pig");
 	//set the model matrix
-	m_pEntityMngr->SetModelMatrix(glm::translate(vector3(-2.0f, -1.0f, -1.0f)));
+	m_pEntityMngr->SetModelMatrix(glm::translate(vector3(-2.0f, -1.0f, -1.0f)), "Pig");
 
 }
 void Application::Update(void)
@@ -63,15 +63,20 @@ void Application::Update(void)
 
 
 	//Move the last entity added slowly to the right
-	matrix4 lastMatrix = m_pEntityMngr->GetModelMatrix();// get the model matrix of the last added
+	matrix4 lastMatrix = m_pEntityMngr->GetModelMatrix(m_pEntityMngr->GetEntityCount() - 1);// get the model matrix of the last added
 	lastMatrix *= glm::translate(IDENTITY_M4, vector3(0.01f, 0.0f, 0.0f)); //translate it
-	m_pEntityMngr->SetModelMatrix(lastMatrix); //return it to its owner
+	m_pEntityMngr->SetModelMatrix(lastMatrix, m_pEntityMngr->GetEntityCount() - 1); //return it to its owner
 
 	//Update Entity Manager
 	m_pEntityMngr->Update();
 
 	//Add objects to render list
-	m_pEntityMngr->AddEntityToRenderList(-1, true);
+	//m_pEntityMngr->AddEntityToRenderList(-1, true);
+	for (uint i = 0; i < m_pEntityMngr->GetEntityCount(); i++)
+	{
+		m_pEntityMngr->AddEntityToRenderList(i, true);
+		m_pMeshMngr->AddAxisToRenderList(m_pEntityMngr->GetModelMatrix(i));
+	}
 }
 void Application::Display(void)
 {

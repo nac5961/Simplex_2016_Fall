@@ -141,6 +141,12 @@ public:
 	OUTPUT: ---
 	*/
 	void AddEntityToRenderList(String a_sUniqueID, bool a_bRigidBody = false);
+	/*
+	USAGE: Will return the number of entities in the list
+	ARGUMENTS: ---
+	OUTPUT: ---
+	*/
+	uint GetEntityCount();
 	
 private:
 	/*
