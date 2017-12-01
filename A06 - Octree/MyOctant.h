@@ -12,7 +12,7 @@ namespace Simplex
 
 	private:
 		static uint m_uOctantCount; //total number of octants in the scene
-		static uint m_uMaxLevel; //number of levels to display the octree at
+		static uint m_uMaxLevel; //number of octree subdivisions
 
 		uint m_uID = 0; //id of octant
 		uint m_uLevel = 0; //the current level of the octant
@@ -27,6 +27,8 @@ namespace Simplex
 		vector3 m_v3Min = ZERO_V3;
 		vector3 m_v3Max = ZERO_V3;
 
+		std::vector<uint> m_EntityList; //list of entities in this octant
+
 		MyOctant* m_pRoot = nullptr; //root node
 		MyOctant* m_pParent = nullptr; //parent node
 		MyOctant* m_pChildren[8]; //child nodes
@@ -39,7 +41,7 @@ namespace Simplex
 		//Sub Constructor
 		//a_v3Center -> center of octant
 		//a_fSize -> size of octant
-		MyOctant(vector3 a_v3Center, float a_fSize);
+		MyOctant(MyOctant* a_pParent, vector3 a_v3Center, float a_fSize, uint a_uMaxLevel);
 
 		//Getter
 		//Returns size of octant
@@ -85,7 +87,7 @@ namespace Simplex
 		uint GetOctantCount();
 
 		//Constructs a tree according to the max level
-		void ContructTree(uint a_uMaxLevel);
+		void ConstructTree(uint a_uLevel);
 
 		//Gives an entity in the scene an octant ID
 		void AssignIDtoEntity();

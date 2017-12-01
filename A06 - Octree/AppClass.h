@@ -10,13 +10,18 @@ Date: 2017/06
 #include "ControllerConfiguration.h"
 #include "imgui\ImGuiObject.h"
 
-#include "MyEntityManager.h"
+//#include "MyEntityManager.h"
+
+#include "MyOctant.h"
+
 
 namespace Simplex
 {
 	//Adding Application to the Simplex namespace
 class Application
 {
+	MyOctant* m_pRoot = nullptr;
+
 	MyEntityManager* m_pEntityMngr = nullptr; //Entity Manager
 	uint m_uOctantID = -1; //Index of Octant to display
 	uint m_uObjects = 0; //Number of objects in the scene
