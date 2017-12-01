@@ -43,6 +43,10 @@ namespace Simplex
 		//a_fSize -> size of octant
 		MyOctant(MyOctant* a_pParent, vector3 a_v3Center, float a_fSize, uint a_uMaxLevel);
 
+		//Destructor
+		//Deletes all octants in the octree
+		~MyOctant();
+
 		//Getter
 		//Returns size of octant
 		float GetSize();
@@ -91,6 +95,10 @@ namespace Simplex
 
 		//Gives an entity in the scene an octant ID
 		void AssignIDtoEntity();
+
+		//Deletes all octants in the octree
+		//Used in the destructor to avoid memory leaks
+		void KillBranches();
 	};
 
 }

@@ -28,11 +28,11 @@ Simplex::MyOctant::MyOctant(uint a_uMaxLevel)
 		m_pChildren[i] = nullptr;
 	}
 
-	//Start building the octree
-	ConstructTree(m_uLevel);
-
 	//Increase total octant count
 	m_uOctantCount++;
+
+	//Start building the octree
+	ConstructTree(m_uLevel);
 }
 
 Simplex::MyOctant::MyOctant(MyOctant* a_pParent, vector3 a_v3Center, float a_fSize, uint a_uLevel)
@@ -42,6 +42,7 @@ Simplex::MyOctant::MyOctant(MyOctant* a_pParent, vector3 a_v3Center, float a_fSi
 	m_v3Center = a_v3Center;
 	m_fSize = a_fSize;
 	m_uLevel = a_uLevel;
+	m_uID = m_uOctantCount;
 
 	//Set the singletons
 	m_pEntityManager = MyEntityManager::GetInstance();
@@ -57,11 +58,16 @@ Simplex::MyOctant::MyOctant(MyOctant* a_pParent, vector3 a_v3Center, float a_fSi
 		m_pChildren[i] = nullptr;
 	}
 
-	//Continue building the octree
-	ConstructTree(a_uLevel);
-
 	//Increase total octant count
 	m_uOctantCount++;
+
+	//Continue building the octree
+	ConstructTree(a_uLevel);
+}
+
+Simplex::MyOctant::~MyOctant()
+{
+	KillBranches();
 }
 
 float Simplex::MyOctant::GetSize()
@@ -99,14 +105,14 @@ bool Simplex::MyOctant::IsColliding(uint a_uIndex)
 	vector3 maxG = entity->GetRigidBody()->GetMaxGlobal();
 	vector3 minG = entity->GetRigidBody()->GetMinGlobal();
 
-	//No collisions
-	if ((m_v3Min.x > maxG.x || m_v3Max.x < minG.x) && (m_v3Min.y < minG.y || m_v3Min.y > maxG.y) && (m_v3Min.z > maxG.z || m_v3Max.z < minG.z))
+	//Collisions
+	if ((m_v3Min.x <= maxG.x && m_v3Max.x >= minG.x) && (m_v3Min.y <= maxG.y && m_v3Max.y >= minG.y) && (m_v3Min.z <= maxG.z && m_v3Max.z >= minG.z))
 	{
-		return false;
+		return true;
 	}
 
-	//Collisions
-	return true;
+	//No collisions
+	return false;
 }
 
 void Simplex::MyOctant::Display()
@@ -123,10 +129,12 @@ void Simplex::MyOctant::Display()
 
 void Simplex::MyOctant::Display(uint a_uIndex)
 {
+	
 }
 
 void Simplex::MyOctant::ClearEntityList()
 {
+	m_EntityList.clear();
 }
 
 void Simplex::MyOctant::Subdivide()
@@ -170,6 +178,9 @@ void Simplex::MyOctant::ConstructTree(uint a_uLevel)
 	//If recursively got to max level, stop going further
 	if (a_uLevel >= m_uMaxLevel)
 	{
+		//Set which objects are in this octant/dimension
+		AssignIDtoEntity();
+
 		return;
 	}
 
@@ -216,12 +227,60 @@ void Simplex::MyOctant::ConstructTree(uint a_uLevel)
 
 void Simplex::MyOctant::AssignIDtoEntity()
 {
-	for (int i = 0; i < m_pEntityManager->GetEntityCount(); i++)
+	//The commented out code is used to assign IDs if
+	//you don't assign IDs when constructing the tree
+	/*
+	//Check octant if it is a leaf
+	if (IsLeaf())
 	{
-		//Ignore entities already
-		if (IsColliding(i))
+		for (uint i = 0; i < m_pEntityManager->GetEntityCount(); i++)
 		{
-			
+			//If entity collides with octant, add entity to octant (dimension)
+			if (IsColliding(i))
+			{
+				m_pEntityManager->AddDimension(i, m_uID);
+				m_EntityList.push_back(i);
+			}
+		}
+	}
+
+	//Recursively traverse to leaf nodes
+	else
+	{
+		for (uint i = 0; i < m_uChildren; i++)
+		{
+			m_pChildren[i]->AssignIDtoEntity();
+		}
+	}
+	*/
+
+	//Check if octant is a leaf
+	if (IsLeaf())
+	{
+		for (uint i = 0; i < m_pEntityManager->GetEntityCount(); i++)
+		{
+			//If entity collides with octant, add entity to octant (dimension)
+			if (IsColliding(i))
+			{
+				m_pEntityManager->AddDimension(i, m_uID);
+				m_EntityList.push_back(i);
+			}
+		}
+	}
+}
+
+void Simplex::MyOctant::KillBranches()
+{
+	//Recursively runs deletion code on parent and all children
+	//All lower level nodes (higher level number = lower level)
+	//are deleted first then the higher level nodes
+	//(lower level number = higher level) are deleted, 
+	//with the root node being deleted last.
+	if (!IsLeaf())
+	{
+		for (uint i = 0; i < m_uChildren; i++)
+		{
+			delete m_pChildren[i];
 		}
 	}
 }

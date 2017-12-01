@@ -29,7 +29,7 @@ void Application::InitVariables(void)
 			m_pEntityMngr->SetModelMatrix(m4Position);
 		}
 	}
-	m_uOctantLevels = 4;
+	m_uOctantLevels = 1;
 	m_pRoot = new MyOctant(m_uOctantLevels);
 	uint something = m_pRoot->GetOctantCount();
 	m_pEntityMngr->Update();
@@ -76,6 +76,9 @@ void Application::Display(void)
 }
 void Application::Release(void)
 {
+	//Release the octree
+	SafeDelete(m_pRoot);
+
 	//release GUI
 	ShutdownGUI();
 }
