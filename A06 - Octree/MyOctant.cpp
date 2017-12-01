@@ -16,11 +16,11 @@ Simplex::MyOctant::MyOctant(uint a_uMaxLevel)
 	m_uLevel = m_uID = 0;
 
 	//Set size to radius of the circle used in appclass.cpp (base octant)
-	m_fSize = 68.0f;
+	m_fSize = 75.0f;
 
 	//Set min and max points
-	m_v3Max = m_v3Center + vector3(m_fSize);
-	m_v3Min = m_v3Center - vector3(m_fSize);
+	m_v3Max = m_v3Center + vector3(m_fSize / 2.0f); // divide by 2.0f to use half width
+	m_v3Min = m_v3Center - vector3(m_fSize / 2.0f); // divide by 2.0f to use half width
 
 	//Initialize all children to null pointers
 	for (uint i = 0; i < 8; i++)
@@ -49,8 +49,8 @@ Simplex::MyOctant::MyOctant(MyOctant* a_pParent, vector3 a_v3Center, float a_fSi
 	m_pMeshManager = MeshManager::GetInstance();
 
 	//Set min and max points
-	m_v3Max = m_v3Center + vector3(m_fSize);
-	m_v3Min = m_v3Center - vector3(m_fSize);
+	m_v3Max = m_v3Center + vector3(m_fSize / 2.0f); // divide by 2.0f to use half width
+	m_v3Min = m_v3Center - vector3(m_fSize / 2.0f); //divide by 2.0f to use half width
 
 	//Initialize all children to null pointers
 	for (uint i = 0; i < 8; i++)
@@ -68,6 +68,13 @@ Simplex::MyOctant::MyOctant(MyOctant* a_pParent, vector3 a_v3Center, float a_fSi
 Simplex::MyOctant::~MyOctant()
 {
 	KillBranches();
+
+	//Reset static variables when root is deleted
+	if (m_uID == 0)
+	{
+		m_uOctantCount = 0;
+		m_uMaxLevel = 0;
+	}
 }
 
 float Simplex::MyOctant::GetSize()
@@ -118,7 +125,10 @@ bool Simplex::MyOctant::IsColliding(uint a_uIndex)
 void Simplex::MyOctant::Display()
 {
 	//Display this octant
-	m_pMeshManager->AddWireCubeToRenderList(glm::scale(m_v3Max), C_YELLOW);
+	matrix4 m4Scale = glm::scale(vector3(m_fSize));
+	matrix4 m4Translation = glm::translate(m_v3Center);
+	matrix4 m4Model = m4Translation * m4Scale;
+	m_pMeshManager->AddWireCubeToRenderList(m4Model, C_YELLOW, RENDER_WIRE);
 
 	//Display all child octants
 	for (uint i = 0; i < m_uChildren; i++)
@@ -129,16 +139,40 @@ void Simplex::MyOctant::Display()
 
 void Simplex::MyOctant::Display(uint a_uIndex)
 {
-	
+	//Check to see if index is valid
+	if (a_uIndex < 0 || a_uIndex >= m_uOctantCount)
+	{
+		//Display normally
+		Display();
+	}
+
+	//Display the target octant
+	else
+	{
+		//Target octant found
+		if (m_uID == a_uIndex)
+		{
+			//Display this octant
+			matrix4 m4Scale = glm::scale(vector3(m_fSize));
+			matrix4 m4Translation = glm::translate(m_v3Center);
+			matrix4 m4Model = m4Translation * m4Scale;
+			m_pMeshManager->AddWireCubeToRenderList(m4Model, C_YELLOW, RENDER_WIRE);
+		}
+
+		else
+		{
+			//Search children
+			for (uint i = 0; i < m_uChildren; i++)
+			{
+				m_pChildren[i]->Display(a_uIndex);
+			}
+		}
+	}
 }
 
 void Simplex::MyOctant::ClearEntityList()
 {
 	m_EntityList.clear();
-}
-
-void Simplex::MyOctant::Subdivide()
-{
 }
 
 MyOctant * Simplex::MyOctant::GetChild(uint a_uIndex)
@@ -185,7 +219,7 @@ void Simplex::MyOctant::ConstructTree(uint a_uLevel)
 	}
 
 	vector3 offset = ZERO_V3; //offset for child position
-	float size = m_fSize / 2.0f; //size of child
+	float size = m_fSize / 2.0f * 0.5f; //half width of child
 
 	//Create the 8 children recursively
 	for (uint i = 0; i < 8; i++)
@@ -218,7 +252,7 @@ void Simplex::MyOctant::ConstructTree(uint a_uLevel)
 		}
 
 		//Create child (Parameters: parent, center, size, level)
-		m_pChildren[i] = new MyOctant(this, m_v3Center + offset, size, a_uLevel + 1);
+		m_pChildren[i] = new MyOctant(this, m_v3Center + offset, size * 2.0f, a_uLevel + 1);
 	}
 
 	//Set number of children
@@ -276,6 +310,7 @@ void Simplex::MyOctant::KillBranches()
 	//are deleted first then the higher level nodes
 	//(lower level number = higher level) are deleted, 
 	//with the root node being deleted last.
+	//So deletion runs from bottom to top.
 	if (!IsLeaf())
 	{
 		for (uint i = 0; i < m_uChildren; i++)

@@ -75,9 +75,6 @@ namespace Simplex
 		//Clears entity list for all nodes
 		void ClearEntityList();
 
-		//Creates 8 smaller octants inside existing ones
-		void Subdivide();
-
 		//Returns the child octant specified (0-7)
 		MyOctant* GetChild(uint a_uIndex);
 
