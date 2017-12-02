@@ -21,6 +21,7 @@ namespace Simplex
 class Application
 {
 	MyOctant* m_pRoot = nullptr;
+	bool m_bVisible = true;
 
 	MyEntityManager* m_pEntityMngr = nullptr; //Entity Manager
 	uint m_uOctantID = -1; //Index of Octant to display
