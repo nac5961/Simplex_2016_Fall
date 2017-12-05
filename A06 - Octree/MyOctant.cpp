@@ -232,7 +232,7 @@ void Simplex::MyOctant::ConstructTree(uint a_uLevel)
 			m_EntityList.push_back(i);
 
 			//Mark to subdivide if at ideal count
-			if (m_EntityList.size() >= 5)
+			if (m_EntityList.size() >= m_uIdealEntityCount)
 			{
 				canSubdivide = true;
 
@@ -249,7 +249,7 @@ void Simplex::MyOctant::ConstructTree(uint a_uLevel)
 		vector3 offset = ZERO_V3; //offset for child position
 		float size = m_fSize / 2.0f * 0.5f; //half width of child
 
-											//Create the 8 children recursively
+		//Create the 8 children recursively
 		for (uint i = 0; i < 8; i++)
 		{
 			if (i & 1)
@@ -291,7 +291,7 @@ void Simplex::MyOctant::ConstructTree(uint a_uLevel)
 		//Add entity to the dimension
 		for (uint i = 0; i < m_EntityList.size(); i++)
 		{
-			m_pEntityManager->AddDimension(i, m_uID);
+			m_pEntityManager->AddDimension(m_EntityList[i], m_uID);
 		}
 	}
 }
