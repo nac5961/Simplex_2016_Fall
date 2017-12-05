@@ -30,7 +30,7 @@ void Application::InitVariables(void)
 		}
 	}
 	m_uOctantLevels = 0;
-	m_pRoot = new MyOctant(m_uOctantLevels);
+	m_pRoot = new MyOctant(m_uOctantLevels, 5);
 	uint something = m_pRoot->GetOctantCount();
 	m_pEntityMngr->Update();
 }
